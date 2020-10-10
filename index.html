@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Look mom I have mongo db!!</h1>
+    <form action="/addProduct" method="post">
+        <input type="text" name="name" placeholder="name">
+        <input type="text" name="price" placeholder="price">
+        <input type="text" name="quantity" placeholder="quantity">
+        <button>Add Product</button>
+    </form>
+
+    <div id='products'></div>
+    <div id='update'></div>
+    <script>
+        const loadProduct = () =>{
+             fetch('/products')
+        .then(res => res.json())
+        .then(products => {
+          const container = document.getElementById('products') ;
+          container.innerHTML =''
+          products.forEach(pd => {
+              console.log(pd)
+            const p = document.createElement('p');
+            p.innerHTML = `${pd.name}
+            ${pd.price}
+            <button onclick = "handleUpdate('${pd._id}')">update</button>
+            <button onclick="handleDelete(event,'${pd._id}')">delete</button>` 
+            container.appendChild(p) 
+          }); 
+        })
+        }
+       
+        loadProduct()
+        
+        const handleUpdate = (id) =>{
+            fetch(`/prducts/${id}`)
+            .then(res => res.json())
+            .then(data => {
+                console.log(data)
+                const update = document.getElementById('update');
+                update.innerHTML = `
+                <h3> Update: ${data._id}</h3>
+                <input id='price' type='text' value= '${data.price}'/>
+                </br>
+                <button onclick="handleUpdateSubmit('${data._id}')">submit</button>`
+            })
+        }
+
+        const handleUpdateSubmit = (id)=>{
+            const price = document.getElementById('price').value;
+            const product = {price}
+            fetch(`/update/${id}`,{
+                method:'PATCH',
+                headers:{'Content-Type':'application/json'},
+                body: JSON.stringify(product)
+            })
+            .then(res => res.json())
+            .then(data =>{
+                loadProduct()
+                document.getElementById('update').innerHTML =''
+            })
+        }
+
+        const handleDelete = (event,id) =>{
+            console.log(event.target.parentNode)
+            fetch(`/delete/${id}`,{
+                method:'DELETE'
+            })
+            .then(res =>res.json())
+            .then(result =>{
+                if(result){
+                    event.target.parentNode.style.display='none' 
+                }
+            })
+        }
+    </script>
+</body>
+</html>
